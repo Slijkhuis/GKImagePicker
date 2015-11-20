@@ -20,6 +20,15 @@
 @property (nonatomic, assign) float minWidthRatio;
 @property (nonatomic, assign) BOOL useFrontCameraAsDefault;
 
+@property NSString* actionSheetTitle;
+@property NSString* actionSheetMessage;
+@property NSString* actionSheetCameraOptionTitle;
+@property NSString* actionSheetLibraryOptionTitle;
+@property NSString* actionSheetCancel;
+
+@property NSString* editorCancel;
+@property NSString* editorDone;
+
 - (void)showActionSheetOnViewController:(UIViewController *)viewController onPopoverFromView:(UIView *)popoverView;
 
 @end

@@ -30,7 +30,7 @@
 
 - (id)init{
     if (self = [super init]) {
-        
+
         self.cropSize = CGSizeMake(320, 320);
         self.resizeableCropArea = NO;
     }
@@ -53,13 +53,13 @@
 #pragma mark UIImagePickerDelegate Methods
 
 - (void)imagePickerControllerDidCancel:(UIImagePickerController *)picker{
-    
+
     if ([self.delegate respondsToSelector:@selector(imagePickerDidCancel:)]) {
         [self.delegate imagePickerDidCancel:self];
     } else {
         [self _hideController];
     }
-    
+
 }
 
 - (void)imagePickerController:(UIImagePickerController *)picker didFinishPickingMediaWithInfo:(NSDictionary *)info{
@@ -68,7 +68,7 @@
     cropController.enforceRatioLimits = self.enforceRatioLimits;
     cropController.maxWidthRatio = self.maxWidthRatio;
     cropController.minWidthRatio = self.minWidthRatio;
-    
+
 #if __IPHONE_OS_VERSION_MAX_ALLOWED >= 70000
     cropController.preferredContentSize = picker.preferredContentSize;
 #else
@@ -79,14 +79,14 @@
     cropController.cropSize = self.cropSize;
     cropController.delegate = self;
     [picker pushViewController:cropController animated:YES];
-    
+
 }
 
 #pragma mark -
 #pragma GKImagePickerDelegate
 
 - (void)imageCropController:(GKImageCropViewController *)imageCropController didFinishWithCroppedImage:(UIImage *)croppedImage{
-    
+
     if ([self.delegate respondsToSelector:@selector(imagePicker:pickedImage:)]) {
         [self _hideController];
         [self.delegate imagePicker:self pickedImage:croppedImage];
@@ -101,40 +101,42 @@
 {
     self.presentingViewController = viewController;
     self.popoverView = popoverView;
-    NSString *fromCameraString = NSLocalizedString(@"Image from Camera", @"Image from Camera");
-    NSString *fromLibraryString = NSLocalizedString(@"Image from Library", @"Image from Library");
-    NSString *cancelTitle = NSLocalizedString(@"Cancel", @"Cancel");
-    
+
+    NSString *title = _actionSheetTitle; // May be nil
+    NSString *message = _actionSheetMessage; // May be nil
+    NSString *fromCameraString = _actionSheetCameraOptionTitle==nil ? NSLocalizedString(@"Image from Camera", @"Image from Camera") : _actionSheetCameraOptionTitle;
+    NSString *fromLibraryString = _actionSheetLibraryOptionTitle==nil ? NSLocalizedString(@"Image from Library", @"Image from Library") : _actionSheetLibraryOptionTitle;
+    NSString *cancelTitle = _actionSheetCancel==nil ? NSLocalizedString(@"Cancel", @"Cancel") : _actionSheetCancel;
+
     if (NSFoundationVersionNumber >= NSFoundationVersionNumber_iOS_8_0) {
-        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:nil message:nil preferredStyle:UIAlertControllerStyleActionSheet];
+        UIAlertController *alertController = [UIAlertController alertControllerWithTitle:title message:message preferredStyle:UIAlertControllerStyleActionSheet];
         UIAlertAction *cancelAction = [UIAlertAction actionWithTitle:cancelTitle style:UIAlertActionStyleCancel handler:^(UIAlertAction * _Nonnull action) {
-            
+
         }];
-        
+
         UIAlertAction *fromCameraAction = [UIAlertAction actionWithTitle:fromCameraString style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             [self showCameraImagePicker];
         }];
-        
+
         UIAlertAction *fromLibraryAction = [UIAlertAction actionWithTitle:fromLibraryString style:UIAlertActionStyleDefault handler:^(UIAlertAction * _Nonnull action) {
             [self showGalleryImagePicker];
         }];
-        
+
         [alertController addAction:cancelAction];
         [alertController addAction:fromCameraAction];
         [alertController addAction:fromLibraryAction];
-        
+
         [viewController presentViewController:alertController animated:YES completion:^{
-            
+
         }];
-    }
-    else {
-        UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:nil
+    } else {
+        UIActionSheet *actionSheet = [[UIActionSheet alloc] initWithTitle:title
                                                                  delegate:(id)self
-                                                        cancelButtonTitle:NSLocalizedString(@"Cancel", @"Cancel")
+                                                        cancelButtonTitle:cancelTitle
                                                    destructiveButtonTitle:nil
-                                                        otherButtonTitles:NSLocalizedString(@"Image from Camera", @"Image from Camera"), NSLocalizedString(@"Image from Library", @"Image from Library"), nil];
+                                                        otherButtonTitles:fromCameraString, fromLibraryString, nil];
         actionSheet.delegate = self;
-        
+
         if (UIUserInterfaceIdiomPad == UI_USER_INTERFACE_IDIOM()) {
             [actionSheet showFromRect:self.popoverView.frame inView:self.presentingViewController.view animated:YES];
         } else {
@@ -150,17 +152,17 @@
 - (void)presentImagePickerController
 {
     if (UI_USER_INTERFACE_IDIOM() == UIUserInterfaceIdiomPad) {
-        
+
         self.popoverController = [[UIPopoverController alloc] initWithContentViewController:self.imagePickerController];
         [self.popoverController presentPopoverFromRect:self.popoverView.frame
                                                 inView:self.presentingViewController.view
                               permittedArrowDirections:UIPopoverArrowDirectionAny
                                               animated:YES];
-        
+
     } else {
-        
+
         [self.presentingViewController presentViewController:self.imagePickerController animated:YES completion:nil];
-        
+
     }
 }
 
@@ -170,14 +172,14 @@
 
     UIAlertView* alert = [[UIAlertView alloc] initWithTitle:@"Simulator" message:@"Camera not available." delegate:nil cancelButtonTitle:@"OK" otherButtonTitles:nil];
     [alert show];
-    
+
 #elif TARGET_OS_IPHONE
-    
+
     self.imagePickerController = [[UIImagePickerController alloc] init];
     self.imagePickerController.sourceType = UIImagePickerControllerSourceTypeCamera;
     self.imagePickerController.delegate = self;
     self.imagePickerController.allowsEditing = NO;
-    
+
     if (self.useFrontCameraAsDefault){
         self.imagePickerController.cameraDevice = UIImagePickerControllerCameraDeviceFront;
     }
